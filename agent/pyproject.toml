@@ -1,0 +1,26 @@
+[project]
+name = "aosl-agent"
+version = "0.1.0"
+description = "AOSL Agent is a Python package that provides an interface for interacting with the AOSL system. It allows C2 servers to perform various tasks and operations related to AOSL."
+readme = "README.md"
+authors = [
+    { name = "aoi", email = "aoi@example.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+    "httpx>=0.28.1",
+    "psutil>=7.2.2",
+    "pytest>=9.1.1",
+    "uvicorn>=0.52.4",
+]
+
+[project.scripts]
+aosl-agent = "aosl_agent.app:main"
+
+# [tool.uv]
+# package = false
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13.0"]
+build-backend = "uv_build"

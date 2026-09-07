@@ -1,0 +1,1 @@
+# Additional Route like /register will be added here for agent to connect to C2 and get the API key and agent_id

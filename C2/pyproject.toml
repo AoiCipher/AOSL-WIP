@@ -1,0 +1,22 @@
+[project]
+name = "aosl-c2"
+version = "0.1.0"
+description = "AOSL C2 is a Backbone of AOSL Project. AOSL C2 Where the ai live and managing, orchestrating AOSL agents."
+readme = "README.md"
+authors = [
+    { name = "aoi", email = "aoi@example.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.141.0",
+    "uvicorn>=0.52.0",
+    "pydantic>=2.9.0",
+    "websockets>=15.0",
+    "loguru>=0.7.3",
+]
+
+[project.scripts]
+aosl-c2 = "main:main"
+
+[tool.uv]
+package = false

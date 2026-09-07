@@ -1,0 +1,9 @@
+
+
+base url = /agent/v1
+
+/run/dork?={querydorking}&{shearchengineid}
+/run/command?={full command} < for example "curl https://example.com" that will be executed insite safe place sandbox
+
+/register?={apikey} send by C2 when user hit register new agent c2 will give apikey then agent store it on dedicated agent db. if c2 want communicate must use agent api key that stored in c2 db, then check is a falid or not 
+/health?={apikey} return agent usage, cpu ram storage, and then info about the hardware
