@@ -2,6 +2,9 @@
 
 Stateful AI-driven security assessment orchestration platform. The database is the source of truth, the planner is replaceable, and humans remain in control.
 
+> [!WARNING]
+> **Project Announcement** Development of this project will be suspended for four months, until January 2027.
+
 ## What it does
 
 Project-AOSL coordinates security assessments through a Command & Control (C2) architecture:

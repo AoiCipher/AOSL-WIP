@@ -8,8 +8,9 @@ import time
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
+from loguru import logger
 
-from db.database import get_db
+from server.db.database import get_db
 
 router = APIRouter(prefix="/api/v1", tags=["Agents"])
 
@@ -61,6 +62,7 @@ def register_agent(
             "agent_uuid": agent_id,
             "api_key": api_key
         }
+    logger.bind(route="agent").info("agent registered uuid={} name={} ip={}", agent_id, name, req.ip)
 
 
 @router.get("/agent/list")
@@ -76,6 +78,7 @@ def list_agents(db_path: Optional[str] = None) -> Dict[str, List[Dict[str, Any]]
     with get_db(db_path) as conn:
         cur = conn.execute("SELECT id, agent_id, name, ip, status, last_seen, created_at FROM agents")
         agents = [dict(r) for r in cur.fetchall()]
+        logger.bind(route="agent").info("agent list queried ({} agents)", len(agents))
         return {"agents": agents}
 
 
@@ -107,6 +110,7 @@ def get_agent_info(
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Agent not found")
+        logger.bind(route="agent").info("agent info queried id={}", aid)
         return dict(row)
 
 
@@ -138,6 +142,7 @@ def get_agent_health(
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Agent not found")
+        logger.bind(route="agent").info("agent health queried id={}", aid)
         return dict(row)
 
 
@@ -168,4 +173,5 @@ def delete_agent(
         cur = conn.execute("DELETE FROM agents WHERE id = ?", (aid,))
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Agent not found")
+        logger.bind(route="agent").info("agent deleted id={}", aid)
         return {"message": f"Agent {aid} deleted"}

@@ -5,7 +5,8 @@ Provides system status checks, database metrics, and telemetry counters.
 
 from typing import Dict, Any, Optional
 from fastapi import APIRouter
-from db.database import get_db
+from loguru import logger
+from server.db.database import get_db
 
 router = APIRouter(prefix="/api/v1", tags=["System"])
 
@@ -18,6 +19,7 @@ def handle_health() -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Status and health payload.
     """
+    logger.bind(route="system").info("health check")
     return {"status": "healthy", "uptime": "ok"}
 
 
@@ -35,4 +37,5 @@ def handle_stats(db_path: Optional[str] = None) -> Dict[str, int]:
         u_cnt = conn.execute("SELECT COUNT(*) as c FROM users").fetchone()["c"]
         a_cnt = conn.execute("SELECT COUNT(*) as c FROM agents").fetchone()["c"]
         t_cnt = conn.execute("SELECT COUNT(*) as c FROM tasks").fetchone()["c"]
+        logger.bind(route="system").info("stats queried users={} agents={} tasks={}", u_cnt, a_cnt, t_cnt)
         return {"users": u_cnt, "agents": a_cnt, "tasks": t_cnt}

@@ -9,8 +9,9 @@ import uuid
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
+from loguru import logger
 
-from db.database import get_db
+from server.db.database import get_db
 
 router = APIRouter(prefix="/api/v1", tags=["Tasks"])
 
@@ -52,6 +53,7 @@ def create_task(
             """,
             (task_uuid, str(req.agent_id), req.command, now, now)
         )
+        logger.bind(route="task").info("task created uuid={} agent={} cmd={}", task_uuid, req.agent_id, req.command)
         return {
             "message": "Task created",
             "task_id": cur.lastrowid,
@@ -72,6 +74,7 @@ def list_tasks(db_path: Optional[str] = None) -> Dict[str, List[Dict[str, Any]]]
     with get_db(db_path) as conn:
         cur = conn.execute("SELECT * FROM tasks ORDER BY created_at DESC")
         tasks = [dict(r) for r in cur.fetchall()]
+        logger.bind(route="task").info("task list queried ({} tasks)", len(tasks))
         return {"tasks": tasks}
 
 
@@ -103,4 +106,5 @@ def get_task_info(
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Task not found")
+        logger.bind(route="task").info("task info queried id={}", tid)
         return dict(row)

@@ -8,8 +8,9 @@ import time
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from loguru import logger
 
-from db.database import get_db
+from server.db.database import get_db
 from server.auth.security import authenticate_credentials, get_current_user, invalidate_api_key
 
 router = APIRouter(prefix="/api/v1", tags=["Users"])
@@ -45,7 +46,9 @@ def login(req: LoginRequest, db_path: Optional[str] = None) -> Dict[str, Any]:
     """
     res = authenticate_credentials(req.username, req.password, db_path=db_path)
     if not res:
+        logger.bind(route="user").warning("login failed user={}", req.username)
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    logger.bind(route="user").info("login success user={} user_id={}", req.username, res["user_id"])
     return res
 
 
@@ -64,6 +67,7 @@ def logout(
         Dict[str, Any]: Logout confirmation message.
     """
     invalidate_api_key(user["id"], db_path=db_path)
+    logger.bind(route="user").info("logout user_id={}", user["id"])
     return {"message": "Logged out"}
 
 
@@ -80,6 +84,7 @@ def list_users(db_path: Optional[str] = None) -> Dict[str, List[Dict[str, Any]]]
     with get_db(db_path) as conn:
         cur = conn.execute("SELECT id, username, role AS privilege, '' AS permissions FROM users")
         users = [dict(r) for r in cur.fetchall()]
+        logger.bind(route="user").info("user list queried ({} users)", len(users))
         return {"users": users}
 
 
@@ -111,6 +116,7 @@ def get_user_info(
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="User not found")
+        logger.bind(route="user").info("user info queried id={}", uid)
         return dict(row)
 
 
@@ -147,6 +153,7 @@ def create_user(
             "INSERT INTO users (username, password, role, created_at) VALUES (?, ?, ?, ?)",
             (req.username, req.password, role, now)
         )
+        logger.bind(route="user").info("user created username={} role={}", req.username, role)
         return {"message": "User created", "user_id": cur.lastrowid}
 
 
@@ -179,4 +186,5 @@ def delete_user(
         cur = conn.execute("DELETE FROM users WHERE id = ?", (uid,))
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="User not found")
+        logger.bind(route="user").info("user deleted id={}", uid)
         return {"message": f"User {uid} deleted"}

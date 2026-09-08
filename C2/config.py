@@ -20,6 +20,8 @@ load_dotenv(dotenv_path=env_path)
 
 # Database file path configuration
 DB_PATH: str = os.getenv("C2_DB_PATH", "data/c2.db")
+DB_AUTH: str = os.getenv("C2_DB_AUTH", "data/auth.db")
+DB_LOG: str = os.getenv("C2_DB_LOG", "data/log.db")
 
 # Server network port configuration (prefers C2_PORT, falls back to PORT or 8000)
 _port_str: str = os.getenv("C2_PORT", os.getenv("PORT", "8000"))
