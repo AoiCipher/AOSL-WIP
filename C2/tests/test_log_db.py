@@ -28,19 +28,19 @@ class TestLogDb(unittest.TestCase):
 
     def test_connection_logged_with_structured_columns(self):
         with TestClient(app) as client:
-            res = client.get("/api/v1/healtC2")
+            res = client.get("/api/v1/healthC2")
             self.assertEqual(res.status_code, 200)
         rows = logsink.query_logs(limit=100)
         self.assertTrue(any("connect" in r["message"] for r in rows), rows)
         conn_row = next(r for r in rows if "connect" in r["message"])
         self.assertEqual(conn_row["method"], "GET")
-        self.assertEqual(conn_row["path"], "/api/v1/healtC2")
+        self.assertEqual(conn_row["path"], "/api/v1/healthC2")
         self.assertEqual(conn_row["status"], 200)
         self.assertEqual(conn_row["ip"], "testclient")
 
     def test_route_log_row(self):
         with TestClient(app) as client:
-            res = client.get("/api/v1/healtC2")
+            res = client.get("/api/v1/healthC2")
             self.assertEqual(res.status_code, 200)
         rows = logsink.query_logs(limit=100)
         self.assertTrue(any(r["route"] == "system" for r in rows), rows)

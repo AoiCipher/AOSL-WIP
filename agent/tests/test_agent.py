@@ -1,8 +1,4 @@
-"""Unit and integration test suite for AOSL Agent.
-
-Tests agent configuration fallback, HTTP registration, health checks,
-task management endpoints, and WebSocket connections.
-"""
+"""Unit and integration tests for AOSL Agent."""
 
 import importlib
 import os
@@ -11,22 +7,22 @@ import tempfile
 import unittest
 import uuid
 
-# Set up test database path before importing modules
+# Set test DB path before any app imports so config.DB_PATH picks it up.
 test_db_dir = tempfile.mkdtemp()
 TEST_DB_PATH = os.path.join(test_db_dir, f"test_agent_{uuid.uuid4().hex}.db")
 os.environ["AGENT_DB_PATH"] = TEST_DB_PATH
 
-# Ensure parent directory (agent root) and src/ are in sys.path
 agent_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if agent_root not in sys.path:
     sys.path.insert(0, agent_root)
 
 from fastapi.testclient import TestClient
 from main import app
-from src.db.db import get_db, init_db
+from server.db import init_db
+
 
 class ConfigSettingsTest(unittest.TestCase):
-    """Test suite for agent configuration loading and environment overrides."""
+    """Config loading and environment override tests."""
 
     def tearDown(self) -> None:
         os.environ.pop("AGENT_PORT", None)
@@ -48,7 +44,7 @@ class ConfigSettingsTest(unittest.TestCase):
         self.assertEqual(config.DEFAULT_PORT, 8000)
 
     def test_env_port_overrides_default(self) -> None:
-        """Verify AGENT_PORT environment variable overrides default port."""
+        """Verify AGENT_PORT environment variable overrides the default."""
         os.environ["AGENT_PORT"] = "9000"
         import config
         importlib.reload(config)
@@ -78,11 +74,10 @@ class ConfigSettingsTest(unittest.TestCase):
 
 
 class AgentApiTest(unittest.TestCase):
-    """Test suite for Agent REST API endpoints and WebSockets."""
+    """Agent REST API endpoint tests."""
 
     def setUp(self) -> None:
-        self.db_path = os.path.join(test_db_dir, f"test_agent_{uuid.uuid4().hex}.db")
-        init_db(self.db_path)
+        init_db()
         self.client = TestClient(app)
 
     def test_register_missing_apikey(self) -> None:
@@ -95,7 +90,6 @@ class AgentApiTest(unittest.TestCase):
         res = self.client.post(
             "/agent/v1/register",
             json={"apikey": "test-key-123", "name": "test-agent-1"},
-            params={"db_path": self.db_path}
         )
         self.assertEqual(res.status_code, 200)
         data = res.json()
@@ -107,26 +101,23 @@ class AgentApiTest(unittest.TestCase):
         self.client.post(
             "/agent/v1/register",
             json={"apikey": "test-key-dup", "name": "agent-dup"},
-            params={"db_path": self.db_path}
         )
         res = self.client.post(
             "/agent/v1/register",
             json={"apikey": "test-key-dup", "name": "agent-dup-2"},
-            params={"db_path": self.db_path}
         )
         self.assertEqual(res.status_code, 409)
 
     def test_health_no_key(self) -> None:
-        """Verify health check rejects request with no API key header (401)."""
-        res = self.client.get("/agent/v1/health", params={"db_path": self.db_path})
-        self.assertEqual(res.status_code, 401)
+        """Verify health check rejects request with no API key header (422)."""
+        res = self.client.get("/agent/v1/health")
+        self.assertEqual(res.status_code, 422)
 
     def test_health_bad_key(self) -> None:
         """Verify health check rejects invalid API key header (401)."""
         res = self.client.get(
             "/agent/v1/health",
             headers={"X-Api-Key": "invalid-key"},
-            params={"db_path": self.db_path}
         )
         self.assertEqual(res.status_code, 401)
 
@@ -135,12 +126,10 @@ class AgentApiTest(unittest.TestCase):
         self.client.post(
             "/agent/v1/register",
             json={"apikey": "test-health-key", "name": "health-agent"},
-            params={"db_path": self.db_path}
         )
         res = self.client.get(
             "/agent/v1/health",
             headers={"X-Api-Key": "test-health-key"},
-            params={"db_path": self.db_path}
         )
         self.assertEqual(res.status_code, 200)
         data = res.json()
@@ -154,38 +143,25 @@ class AgentApiTest(unittest.TestCase):
         self.client.post(
             "/agent/v1/register",
             json={"apikey": "task-key-1", "name": "task-agent"},
-            params={"db_path": self.db_path}
         )
         headers = {"X-Api-Key": "task-key-1"}
 
-        # Create task
         res = self.client.post(
             "/agent/v1/tasks",
             json={"command": "whoami"},
             headers=headers,
-            params={"db_path": self.db_path}
         )
         self.assertEqual(res.status_code, 200)
         task_data = res.json()
         self.assertIn("task_id", task_data)
         task_id = task_data["task_id"]
 
-        # List tasks
-        res = self.client.get(
-            "/agent/v1/tasks",
-            headers=headers,
-            params={"db_path": self.db_path}
-        )
+        res = self.client.get("/agent/v1/tasks", headers=headers)
         self.assertEqual(res.status_code, 200)
         tasks = res.json()
         self.assertTrue(any(t["task_id"] == task_id for t in tasks))
 
-        # Get task by ID
-        res = self.client.get(
-            f"/agent/v1/tasks/{task_id}",
-            headers=headers,
-            params={"db_path": self.db_path}
-        )
+        res = self.client.get(f"/agent/v1/tasks/{task_id}", headers=headers)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json()["task_id"], task_id)
 

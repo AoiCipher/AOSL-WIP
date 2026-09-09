@@ -5,11 +5,13 @@ and configures application routers and settings.
 """
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 from config import DEFAULT_PORT
-from src.db.db import init_db
-from src.server.routes import router
+from logging_setup import setup_logging
+from loguru import logger
+from server.db import init_db
+from server.routes.routes import router
 
 app = FastAPI(
     title="AOSL Agent",
@@ -18,9 +20,20 @@ app = FastAPI(
 )
 
 
+@app.middleware("http")
+async def log_connections(request: Request, call_next):
+    """Log every HTTP connection (who, what) to log.db via loguru."""
+    response = await call_next(request)
+    logger.bind(ip=request.client.host, method=request.method, path=request.url.path).info(
+        "connect {} {} -> {}", request.client.host, request.method, request.url.path
+    )
+    return response
+
+
 @app.on_event("startup")
 def on_startup() -> None:
     """Initialize database tables on FastAPI startup."""
+    setup_logging()
     init_db()
 
 

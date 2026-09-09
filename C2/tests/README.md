@@ -1,6 +1,6 @@
 # C2 Test Suite
 
-Unittest suite for the C2 Core Engine. One test module per routes/domain module. Tests use temp SQLite DB paths (via the `db_path` query param / argument supported by the endpoints and helpers) so they never touch `data/c2.db`.
+Unittest suite for the C2 Core Engine. One test module per routes/domain module. Route tests patch `server.db.database.DB_PATH` to a temp SQLite file so they never touch `data/c2.db`; `test_auth.py` passes `db_path=` to the internal auth helpers directly.
 
 ## Running
 

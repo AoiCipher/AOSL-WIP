@@ -28,26 +28,27 @@ The **AOSL C2 (Command & Control) Core Engine** is the central management servic
 
 ```
 C2/
-├── main.py                # Entrypoint: starts Uvicorn on 0.0.0.0:<port>
-├── config.py              # Env config: DB path, port, key lifetime, LLM settings
-├── requirements.txt       # pip install target
-├── pyproject.toml         # uv/pip project metadata (package: aosl-c2)
+├── main.py                 # Entrypoint: starts Uvicorn on 0.0.0.0:<port>
+├── config.py               # Env config: DB path, port, key lifetime, LLM settings
+├── requirements.txt        # pip install target
+├── pyproject.toml          # uv/pip project metadata (package: aosl-c2)
 ├── data/
-│   └── c2.db              # SQLite database (created automatically on startup)
+│   ├── c2.db               # SQLite database (created automatically on startup)
+│   └── log.db              # SQLite log database (created by logsink)
 ├── server/
 │   ├── routes/
-│   │   ├── server.py      # FastAPI app assembly + init_db on startup
-│   │   ├── user_routes.py # /api/v1 login/logout/user management
-│   │   ├── agent_routes.py# /api/v1 agent registration and management
-│   │   ├── task_routes.py # /api/v1 task dispatch and tracking
+│   │   ├── server.py       # FastAPI app assembly + init_db on startup
+│   │   ├── user_routes.py  # /api/v1 login/logout/user management
+│   │   ├── agent_routes.py # /api/v1 agent registration and management
+│   │   ├── task_routes.py  # /api/v1 task dispatch and tracking
 │   │   └── system_routes.py # /api/v1 health and stats
 │   ├── auth/
-│   │   └── security.py    # Credential check, API key issue/invalidate, Bearer dep
+│   │   └── security.py     # Credential check, API key issue/invalidate, Bearer dep
 │   ├── db/
-│   │   └── database.py    # get_db context manager, init_db schema, admin seed
-│   └── agent/             # Reserved: C2→agent outbound integration (see todo.todo)
-├── tests/                 # unittest suite (see tests/README.md)
-└── .env                   # Local environment overrides (not committed)
+│   │   └── database.py     # get_db context manager, init_db schema, admin seed
+│   └── logsink.py          # SQLite-backed structured logging sink
+├── tests/                  # unittest suite (see tests/README.md)
+└── .env                    # Local environment overrides (not committed)
 ```
 
 ## Database schema

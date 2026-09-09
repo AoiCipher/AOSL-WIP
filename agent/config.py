@@ -6,7 +6,6 @@ Agent service.
 
 import os
 from pathlib import Path
-from typing import Optional
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -27,7 +26,9 @@ def _get_int_env(name: str, default: int) -> int:
 
 
 # Database path configuration
-DB_PATH = os.getenv("AGENT_DB_PATH", "agent.db")
+DB_PATH = os.getenv("AGENT_DB_PATH", "data/agent.db")
+DB_AUTH = os.getenv("AGENT_DB_AUTH", "data/auth.db")
+DB_LOGS = os.getenv("AGENT_DB_LOGS") or str(BASE_DIR / "data" / "logs.db")
 
 # Default HTTP server port
 DEFAULT_PORT = _get_int_env("AGENT_PORT", 8000)

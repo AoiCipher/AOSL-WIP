@@ -1,1 +1,0 @@
-# Where the C2 Connected to agent enpoint base on what C2 Requested

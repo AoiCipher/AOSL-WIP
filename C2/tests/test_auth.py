@@ -27,7 +27,7 @@ class TestAuthSecurity(unittest.TestCase):
         res = authenticate_credentials("admin", "wrong", db_path=TEST_DB)
         self.assertIsNone(res)
 
-        res = authenticate_credentials("admin", "admin", db_path=TEST_DB)
+        res = authenticate_credentials("admin", "adminpass", db_path=TEST_DB)
         self.assertIsNotNone(res)
         key = res["api_key"]
 

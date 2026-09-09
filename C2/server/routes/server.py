@@ -14,7 +14,7 @@ from server.routes.agent_routes import router as agent_router
 from server.routes.task_routes import router as task_router
 
 app = FastAPI(
-    title="Project-AOSL C2 Core Engine",
+    title="AOSL C2 Core Engine",
     description="Lightweight REST API Command & Control (C2) server for security assessment orchestration",
     version="1.0.0",
 )

@@ -74,14 +74,12 @@ def get_user_by_api_key(
 
 
 def get_current_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(security_scheme),
-    db_path: Optional[str] = None
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security_scheme)
 ) -> Dict[str, Any]:
     """FastAPI dependency to extract and validate current authenticated user.
 
     Args:
         credentials: Bearer token authorization credentials.
-        db_path: Optional SQLite database file path override.
 
     Returns:
         Dict[str, Any]: Authenticated user record dictionary.
@@ -91,7 +89,7 @@ def get_current_user(
     """
     if not credentials:
         raise HTTPException(status_code=401, detail="Missing or invalid authentication token")
-    user = get_user_by_api_key(credentials.credentials, db_path=db_path)
+    user = get_user_by_api_key(credentials.credentials)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid or expired API key")
     return user
